@@ -36,6 +36,7 @@ namespace Vue3DonetCore3SPATemplate
 
             services.AddControllers()
                 .ConfigureApiBehaviorOptions(options => {
+                    //  Format return message from ModelState
                     options.InvalidModelStateResponseFactory = actionContext =>
                     {
                         var modelState = actionContext.ModelState.Values;

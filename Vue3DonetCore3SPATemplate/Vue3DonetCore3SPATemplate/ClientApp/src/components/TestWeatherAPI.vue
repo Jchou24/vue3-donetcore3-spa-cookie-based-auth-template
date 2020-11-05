@@ -20,7 +20,7 @@ export default defineComponent({
       }, error => {
         console.log(error)
         console.log(error.response.status)
-        if( error.response.status ){
+        if( error.response.status == 401 ){
           weather.value = "401 Unauthorize, please log in to access Weather API"
         }
       })

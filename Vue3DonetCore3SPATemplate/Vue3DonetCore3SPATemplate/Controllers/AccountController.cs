@@ -40,7 +40,7 @@ namespace Vue3DonetCore3SPATemplate.Controllers
             var user = new AuthenticationUser()
             {
                 Email = authenticationUser.Email,
-                Name = "Test Auth"
+                Name = "Chocolate Cookie"
             };
 
             var claims = new List<Claim>
