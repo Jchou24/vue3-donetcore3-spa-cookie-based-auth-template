@@ -18,10 +18,12 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/testAPI',
     name: 'testAPI',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../components/TestWeatherAPI.vue')
+    component: () => import('../components/TestWeatherAPI.vue')
+  },
+  {
+    path: '/authentication',
+    name: 'authentication',
+    component: () => import('../components/TestAuthentication.vue')
   }
 ]
 
