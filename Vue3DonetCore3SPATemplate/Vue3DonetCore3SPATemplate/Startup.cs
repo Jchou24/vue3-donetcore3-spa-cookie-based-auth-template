@@ -1,11 +1,15 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using VueCliMiddleware;
 
 namespace Vue3DonetCore3SPATemplate
@@ -24,25 +28,36 @@ namespace Vue3DonetCore3SPATemplate
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddControllersWithViews();
-
             // NOTE: PRODUCTION Ensure this is the same path that is specified in your webpack output
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/dist";
             });
-            services.AddControllers();
+
+            services.AddControllers()
+                .ConfigureApiBehaviorOptions(options => {
+                    options.InvalidModelStateResponseFactory = actionContext =>
+                    {
+                        var modelState = actionContext.ModelState.Values;
+                        return new BadRequestObjectResult(actionContext.ModelState);
+                    };
+                });
 
             // Add service and create Policy with options
-            services.AddCors(options =>
-            {
-                options.AddPolicy(this.corsPolicy,
-                    builder => builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    //.AllowCredentials()
-                    );
-            });
+            services.AddCors(options =>{});
+
+            // Add cookie-based authentication
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    // Return 401 instead of 302 when accessing resouce without authorization
+                    // (Default behavior will redirect to login url)
+                    options.Events.OnRedirectToLogin = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.CompletedTask;
+                    };
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,7 +66,12 @@ namespace Vue3DonetCore3SPATemplate
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseCors(corsPolicy);
+                // Add global cors policy
+                app.UseCors(x => x
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .SetIsOriginAllowed(origin => true) // allow any origin
+                    .AllowCredentials()); // allow credentials
             }
             else
             {
@@ -71,6 +91,11 @@ namespace Vue3DonetCore3SPATemplate
 
             // Routing
             app.UseRouting();
+
+            // Authentication
+            app.UseAuthentication();
+            app.UseAuthorization();
+            
             app.UseEndpoints(endpoints =>
             {
                 //endpoints.MapControllerRoute(
